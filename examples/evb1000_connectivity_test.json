@@ -1,0 +1,22 @@
+{
+    "name": "Test Connectivity",
+    "description" : "This is an example",
+    "start_time" : "asap",
+    "duration" : 3900,
+    "logs" : 0,
+    "binaries": {
+	"hardware" : "evb1000",
+	"bin_file" : "bin-files/evb1000_connectivity_test.bin",
+	"targets" : "disi_povo2"
+    },
+    "orchestrator" : {
+	"type": "python",
+	"file" : "py-examples/connectivity_script.py",
+	"run" : "run_test",
+	"run_kargs": {
+	    "num_experiment": 10,
+	    "num_packet": 100,
+	    "ipi": 100
+	}
+    }
+}

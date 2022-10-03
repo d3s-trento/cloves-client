@@ -1,0 +1,23 @@
+{
+    "name": "Test Connectivity",
+    "description": "This test use both dwm1001 and evb1000 nodes and test connectivity",
+    "start_time": "asap",
+    "duration": 750,
+    "binaries": [
+	{
+	    "hardware": "dwm1001",
+	    "bin_file": "bin-files/dwm1001_connectivity_test.hex",
+	    "targets": [1, 2, 3, 4, 5, 6, 7]
+	}
+    ],
+    "orchestrator" : {
+	"type": "python",
+	"file" : "py-examples/connectivity_script.py",
+	"run" : "run_test",
+	"run_kargs" : {
+	     "num_experiment": 10,
+	    "num_packet": 100,
+	    "ipi": 100
+	}
+    }
+}

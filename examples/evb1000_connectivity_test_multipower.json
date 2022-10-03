@@ -1,0 +1,17 @@
+{
+    "name": "Test Connectivity",
+    "description" : "This is an example",
+    "start_time" : "asap",
+    "duration" : 120,
+    "logs" : 0,
+    "binaries": {
+	"hardware" : "evb1000",
+	"bin_file" : "bin-files/evb1000_connectivity_test.bin",
+	"targets" : [9, 10, 11]
+    },
+    "orchestrator" : {
+	"type": "python",
+	"file" : "py-examples/connectivity_script_multipower.py",
+	"run" : "run_test"
+    }
+}

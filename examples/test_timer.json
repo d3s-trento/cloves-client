@@ -1,0 +1,12 @@
+{
+    "name": "Test Timer example",
+    "description" : "This is an example that use test-timer app to show output of node",
+    "start_time" : "now",
+    "duration" : 120,
+    "ble_adv" : [20, 20],
+    "binaries": {
+	"hardware" : "evb1000",
+	"bin_file" : "bin-files/timer-test.bin",
+	"targets" : "all"
+    }
+}

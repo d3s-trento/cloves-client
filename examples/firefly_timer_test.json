@@ -1,0 +1,12 @@
+{
+    "name" : "firefly timer test",
+    "description" : "Try to install timer",
+    "start_time" : "asap",
+    "duration" : 20,
+    "logs" : 0,
+    "binaries" : {
+	"hardware" : "firefly",
+	"bin_file" : "bin-files/all-timers.bin",
+	"targets" : "all"
+    }
+}

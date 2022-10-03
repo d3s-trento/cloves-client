@@ -1,0 +1,11 @@
+{
+    "name" : "firefly AT test",
+    "description" : "Try to install AT test",
+    "start_time" : "now",
+    "duration" : 20,
+    "binaries" : {
+	"hardware" : "firefly",
+	"bin_file" : "bin-files/at-master-test.bin",
+	"targets" : 17
+    }
+}

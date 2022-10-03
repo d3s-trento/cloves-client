@@ -1,0 +1,12 @@
+{
+    "name" : "firefly print addr",
+    "description" : "Test application that print addr every 1s",
+    "start_time" : "now",
+    "duration" : 5,
+    "binaries" : {
+	"hardware" : "firefly",
+	"bin_file" : "bin-files/firefly_print_addr64.bin",
+	"targets" : "all",
+	"programAddress" : "0x00200000"
+    }
+}
