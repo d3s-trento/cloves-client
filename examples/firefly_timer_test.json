@@ -1,6 +1,7 @@
 {
     "name" : "firefly timer test",
     "description" : "Try to install timer",
+    "island": "HALL-A",
     "start_time" : "asap",
     "duration" : 20,
     "logs" : 0,

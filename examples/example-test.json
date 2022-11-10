@@ -2,6 +2,7 @@
     "test_id": 500,
     "name": "Example Test",
     "description": "This test runs a Contiki timer test on all nodes. To illustrate how this script works, we use an array in the image field.",
+    "island": "DEPT",
     "start_time": "ASAP",
     "duration": 5,
     "serial_forwarder": false,

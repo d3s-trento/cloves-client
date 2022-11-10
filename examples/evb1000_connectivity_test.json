@@ -4,6 +4,8 @@
     "start_time" : "asap",
     "duration" : 3900,
     "logs" : 0,
+    "snapshot": ["python", "csv"],
+    "island": "DEPT",
     "binaries": {
 	"hardware" : "evb1000",
 	"bin_file" : "bin-files/evb1000_connectivity_test.bin",

@@ -1,6 +1,7 @@
 {
     "name": "Test Connectivity",
     "description" : "This is a copy of connectivity_test.json but also upload 2 extra file",
+    "island": "DEPT",
     "start_time" : "now",
     "duration" : 60,
     "binaries": {
@@ -13,5 +14,5 @@
 	"file": "py-examples/connectivity_script.py",
 	"run": "run_test"
     },
-    "extra_files" : ["examples/extra_file1", "examples/extra_file2"]
+    "extra_files" : ["extra_file1", "extra_file2"]
 }

@@ -1,6 +1,7 @@
 {
     "name": "Test Connectivity",
     "description": "This test use both dwm1001 and evb1000 nodes and test connectivity",
+    "island": "DEPT",
     "start_time": "asap",
     "duration": 750,
     "binaries": [

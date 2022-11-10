@@ -1,6 +1,7 @@
 {
     "name": "Test Connectivity",
     "description" : "This is an example",
+    "island": "DEPT",
     "start_time" : "asap",
     "duration" : 3900,
     "logs" : 0,

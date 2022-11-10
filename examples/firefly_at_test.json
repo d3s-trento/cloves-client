@@ -1,6 +1,7 @@
 {
     "name" : "firefly AT test",
     "description" : "Try to install AT test",
+    "island": "DEPT",
     "start_time" : "now",
     "duration" : 20,
     "binaries" : {
