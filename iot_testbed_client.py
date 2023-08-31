@@ -1081,7 +1081,7 @@ if __name__ == '__main__':
                 else:
                     print("Testbed is busy:")
                     for busy in busyList:
-                        if busy['is_owner']:
+                        if not busy['is_owner']:
                             ownership = ""
                         else:
                             ownership = " (" + \
