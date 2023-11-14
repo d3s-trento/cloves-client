@@ -46,6 +46,7 @@ The following provides an example that needs to be tweaked depending on the hard
 ```
 {
     "name": "Short test name",
+    "island": "DEPT",
     "description" : "Some optional test description",
     "start_time" : "asap",
     "duration" : 60,
@@ -84,7 +85,7 @@ in the binary description object. Always use `"0x00200000"` unless you know what
     "binaries": {
         "hardware" : "firefly",
         "bin_file" : "my_prog.bin",
-        "programAddress": "0x00200000"
+        "programAddress": "0x00200000",
         "targets" : [2,6]
     }
 ```
