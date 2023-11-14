@@ -6,6 +6,7 @@ import re
 from datetime import datetime, timedelta, date, time
 from pathlib import Path
 import warnings
+import itertools
 
 from requests import Session
 from requests.compat import urljoin
@@ -20,12 +21,24 @@ default_config = {
 }
 
 
+class ApiError(ValueError):
+    def __init__(self, contextMessage, code, message):
+        super().__init__(self, f"{contextMessage}: {code} {message}")
+
+        self.contextMessage = contextMessage
+        self.code = code
+        self.message = message
+
+    def __str__(self):
+        return f"{self.contextMessage}: " \
+            f"{','.join(itertools.chain.from_iterable(self.message.values()))}"
+
+
 class Job:
     """
     Class to represent a single job on testbed, the purpose of this class is
-    help set and modify in the correct way eache paramter
+    help set and modify in the correct way each parameter
     """
-
     def __init__(self, source=None, cwd=Path()):
         self.duration = None
         self.start_time = None
@@ -502,7 +515,10 @@ class IoTTestbed:
             raise Exception("Already connected")
 
         self._session = Session()
-        self._session.headers = {'Authorization': f'Token {self.token}'}
+        self._session.headers = {
+            'Authorization': f'Token {self.token}',
+            'Accept': 'application/json'
+        }
         if self.server.startswith("https"):
             if isinstance(self.cacert, Path):
                 self._session.verify = str(self.cacert)
@@ -575,7 +591,7 @@ class IoTTestbed:
             raise ValueError("jobId must be an int")
 
         if not self.is_open():
-            # TODO chaneg Exception type
+            # TODO change Exception type
             raise Exception("Not open")
 
         r = self._session.delete(
@@ -654,7 +670,7 @@ class IoTTestbed:
 
         return r.json()
 
-    def add_reservation(self, begin, end):
+    def add_reservation(self, island, begin, end):
         if not isinstance(begin, datetime):
             raise ValueError("Begin argument is not valid")
 
@@ -667,17 +683,21 @@ class IoTTestbed:
         if not self.is_open():
             raise Exception("Not open")
 
-        r = self._session.post(urljoin(self.server, "/reservations/"),
-                               data={'begin': begin, 'end': end})
+        r = self._session.post(
+            urljoin(self.server, "/reservations/"),
+            data={'island': island, 'begin': begin, 'end': end}
+        )
 
         if not r.ok:
-            raise ValueError(
-                f"Error adding reservation: {r.status_code} {r.content}"
+            raise ApiError(
+                contextMessage="Error adding reservation",
+                code=r.status_code,
+                message=r.json()
             )
 
         return r.json()
 
-    def mod_reservation(self, reserv_id, begin, end):
+    def mod_reservation(self, reserv_id, island, begin, end):
         if not isinstance(reserv_id, int):
             raise ValueError("reserv_id should be an integer id")
 
@@ -695,11 +715,18 @@ class IoTTestbed:
                     f"/reservations/{reserv_id}"
                     )
         )
-        print(f"{old_response}")
+
+        if not old_response.ok:
+            raise ApiError(
+                contextMessage="Error retrieving reservation to modify it",
+                code=old_response.status_code,
+                message=old_response.json()
+                )
+
         print(f"{old_response.json()}")
         old = old_response.json()
 
-        new = {}
+        new = {'island': island if island is not None else old['island']}
 
         if begin is None:
             new['begin'] = old['begin']
@@ -721,8 +748,11 @@ class IoTTestbed:
         )
 
         if not r.ok:
-            raise Exception("Error modifying the rervation {reserv_id}: "
-                            f"{r.status_code} {r.content}")
+            raise ApiError(
+                contextMessage=f"Error modifying the reservation {reserv_id}",
+                code=r.status_code,
+                message=r.json()
+                )
 
         return r.json()
 
@@ -738,8 +768,10 @@ class IoTTestbed:
         )
 
         if not r.ok:
-            raise Exception(
-                f"Error deleteing reservation: {r.status_code} {r.content}"
+            raise ApiError(
+                contextMessage="Error deleting reservation",
+                code=r.status_code,
+                message=r.json()
             )
 
         return r.json()
@@ -779,12 +811,12 @@ def validate(jobFile):
     return job, errs, warns
 
 
-def parse_reservation_argument(arg):
+def parse_datetime_argument(arg):
     if not isinstance(arg, str):
         raise ValueError("arg should be a string")
 
     if arg == 'now':
-        return datetime.now()
+        return datetime.now() + timedelta(seconds=20)
 
     m = re.match(r" ?(?P<number>[+-]\d+)(?P<unit>[mh])", arg)
     if m:
@@ -802,15 +834,15 @@ def parse_reservation_argument(arg):
 class TestParseReservationArgument(unittest.TestCase):
     def test_int(self):
         with self.assertRaisesRegex(ValueError, "arg should be a string"):
-            parse_reservation_argument(1)
+            parse_datetime_argument(1)
 
     def test_str(self):
         for value in ['+string', 'ciao']:
             with self.assertRaises(ValueError):
-                parse_reservation_argument(value)
+                parse_datetime_argument(value)
 
     def test_now(self):
-        r = parse_reservation_argument('now')
+        r = parse_datetime_argument('now')
 
         self.assertTrue(isinstance(r, datetime))
         self.assertLess(datetime.now() - r, timedelta(seconds=1))
@@ -826,7 +858,7 @@ class TestParseReservationArgument(unittest.TestCase):
         ]
         for s, v in values:
             with self.subTest(s=s):
-                r = parse_reservation_argument(s)
+                r = parse_datetime_argument(s)
 
                 self.assertTrue(isinstance(r, timedelta))
                 self.assertEqual(r, v)
@@ -836,7 +868,7 @@ class TestParseReservationArgument(unittest.TestCase):
         ref = datetime(year=2021, month=2, day=7, hour=12, minute=0)
         for v in values:
             with self.subTest(v=v):
-                r = parse_reservation_argument(v)
+                r = parse_datetime_argument(v)
 
                 self.assertTrue(isinstance(r, datetime))
                 self.assertEqual(r, ref)
@@ -955,11 +987,18 @@ if __name__ == '__main__':
 
     reserv_add_parser = reservationCommand.add_parser('add',
                                                       help='Add a reservation')
+
+    reserv_add_parser.add_argument(
+        'island',
+        help='name of island to reserve'
+    )
+
     reserv_add_parser.add_argument(
         'begin',
         help='indicate when the reservation begins, this should be a '
         'datetime in ISO format YYYY-mm-ddTHH:MM, or a quote string '
-        '"YYYY-mm-dd HH:MM" or special value now'
+        '"YYYY-mm-dd HH:MM" or special value "now" (this means in 20s '
+        'to have time to prepare and submit the request)'
     )
     reserv_add_parser.add_argument(
         'end',
@@ -973,23 +1012,30 @@ if __name__ == '__main__':
     )
     reserv_mod_parser.add_argument('id', type=int,
                                    help='ID of reservation you want modify')
+
+    reserv_mod_parser.add_argument(
+        "--island", '-i',
+        help="new island for reservation"
+    )
+
     reserv_mod_parser.add_argument(
         '--begin', '-b',
         help="indicate the begin time changes, it can be an absolute "
-        "value (expressed as ISO format or quotes string) or special value now or a "
-        "relative value in one of forms: ' -Nh', ' -Nm', +Nm, +Nh "
+        "value (expressed as ISO format or quotes string) or special value "
+        "now or a relative value in one of forms: ' -Nh', ' -Nm', +Nm, +Nh "
         "where N is a number and m means minutes and h means hours.\n"
-        "NOTE negative value should be in quoted string that start with "
-        "a space"
+        "NOTE negative value should be in quoted string that start with a "
+        "space"
     )
 
     reserv_mod_parser.add_argument(
         '--end', '-e',
         help="indicate the end time changes, it can be an absolute "
-        "value (expressed as ISO format or quotes string) or special value now a relative "
-        "value in one of forms: ' -Nh', ' -Nm', +Nm, +Nh where N is a "
-        "number and m means minutes and h means hours.\nNOTE negative "
-        "value should be a quoted string that start witha space"
+        "value (expressed as ISO format or quotes string) or special "
+        "value now or a relative value in one of forms: ' -Nh', ' -Nm', "
+        "+Nm, +Nh where N is a number and m means minutes and h means "
+        "hours.\nNOTE negative value should be a quoted string that start "
+        "with a space"
     )
 
     reserv_del_parser = reservationCommand.add_parser(
@@ -1028,17 +1074,17 @@ if __name__ == '__main__':
 
     if args.command == 'reservation':
         if args.reserv_cmd == 'mod' and args.begin is None and \
-           args.end is None:
-            print("To modify a reservation at begin or end or both should be "
-                  "provided")
+           args.end is None and args.island is None:
+            print("To modify a reservation at least one of island"
+                  ", begin or end should be changed ")
             exit(1)
 
         if args.reserv_cmd in ['add', 'mod']:
             if args.begin is not None:
-                args.begin = parse_reservation_argument(args.begin)
+                args.begin = parse_datetime_argument(args.begin)
 
             if args.end is not None:
-                args.end = parse_reservation_argument(args.end)
+                args.end = parse_datetime_argument(args.end)
 
     if args.command == 'saveConfig':
         with configFile.open('w') as fh:
@@ -1136,15 +1182,25 @@ if __name__ == '__main__':
                     pass
 
         elif args.command == 'reservation':
-            if args.reserv_cmd == 'add':
-                r = tiot.add_reservation(args.begin, args.end)
-                print(f"added reservation with id {r['id']} since "
-                      f"{r['begin']} to {r['end']}")
+            try:
+                if args.reserv_cmd == 'add':
+                    r = tiot.add_reservation(args.island, args.begin, args.end)
+                    print(f"added reservation with id {r['id']} since "
+                          f"{r['begin']} to {r['end']}")
 
-            elif args.reserv_cmd == 'mod':
-                r = tiot.mod_reservation(args.id, args.begin, args.end)
-                print(f"Resevation {r['id']} has been modified")
+                elif args.reserv_cmd == 'mod':
+                    r = tiot.mod_reservation(args.id, args.island, args.begin,
+                                             args.end)
+                    print(f"Resevation {r['id']} has been modified")
 
-            elif args.reserv_cmd == 'del':
-                r = tiot.del_reservartion(args.id)
-                print(f"Resevation {r['id']} has been cancelled")
+                elif args.reserv_cmd == 'del':
+                    r = tiot.del_reservartion(args.id)
+                    print(f"Resevation {r['id']} has been cancelled")
+
+            except ApiError as ex:
+                print(ex.contextMessage)
+                for err in ex.message.values():
+                    if isinstance(err, list):
+                        print("\t".join(err))
+                    else:
+                        print(f"\t{err}")
