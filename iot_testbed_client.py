@@ -945,6 +945,10 @@ if __name__ == '__main__':
     startGroup.add_argument('--now', action='store_true',
                             help="overwrite start_time fields with 'now'")
 
+    scheduleParser.add_argument('--duration', type=int,
+                                default=None,
+                                help="overwrite the duration of the job (in seconds)")
+
     scheduleParser.add_argument('jobFile',
                                 help='the json file that decribe the job',
                                 nargs='+')
@@ -1149,6 +1153,9 @@ if __name__ == '__main__':
 
                 if args.now:
                     job.start_time = 'now'
+
+                if args.duration is not None:
+                    job.duration = args.duration
 
                 if len(errs) == 0:
                     print("Submit job to testbed")
