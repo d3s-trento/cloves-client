@@ -635,6 +635,16 @@ class IoTTestbed:
         if not filename:
             filename = f"job_{jobId}.tar.gz"
 
+        cLen = r.headers.get('content-length')
+        if cLen is None:
+            raise Exception('Received data does not contain expected content-length')
+
+        cLen = int(cLen)
+
+        if cLen != len(r.content):
+            raise Exception("Received data is of different length than expected "
+                            f"(received: {len(r.content)} expected: {cLen})")
+
         fpath = destDir.joinpath(filename)
         count = fpath.write_bytes(r.content)
 
@@ -1178,8 +1188,9 @@ if __name__ == '__main__':
                     fname, nBytes = tiot.download(id, args.dest_dir,
                                                   args.no_delete, args.unzip)
                     print(f"Saved {nBytes} bytes in {fname}")
-                except Exception:
-                    pass
+                except Exception as ex:
+                    print(f'Could not download the {id} job')
+                    print(ex)
 
         elif args.command == 'reservation':
             try:
