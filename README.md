@@ -11,7 +11,7 @@ For a complete documentation pleas refer to doc folder.
 
 Requirements to use this repository:
  + we strongly suggest to use a virtualenv
- + Python 3.8 
+ + Python 3.13+
  + python packages listed in `requirements.txt`
 
 ### Clone the repository and install the requirements
@@ -27,7 +27,7 @@ $ source venv/bin/activate
 $ pip install -r requirements.txt
 ```
 
-We later refer to the `cloves-client` folder as `CLOVER_ROOT`
+We later refer to the `cloves-client` folder as `CLOVES_ROOT`
 
 ### First setup
 
