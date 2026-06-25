@@ -519,11 +519,6 @@ class IoTTestbed:
             'Authorization': f'Token {self.token}',
             'Accept': 'application/json'
         }
-        if self.server.startswith("https"):
-            if isinstance(self.cacert, Path):
-                self._session.verify = str(self.cacert)
-            else:
-                self._session.verify = self.cacert
 
     def __enter__(self):
         if not self.is_open():
